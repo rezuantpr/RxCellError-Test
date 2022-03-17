@@ -10,10 +10,6 @@ import Foundation
 struct State<Element: Comparable> {
   var items: [Element]
   
-  init(items: [Element]) {
-    self.items = items
-  }
-
   mutating func update(newItem: Element) {
     if let index = items.firstIndex(where: { $0 == newItem }) {
       items.remove(at: index)

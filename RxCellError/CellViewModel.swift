@@ -6,27 +6,28 @@
 //
 
 import Foundation
-import RxSwift
 import RxCocoa
+import RxSwift
 
-class CellViewModel: NSObject {
-  var disposeBag = DisposeBag()
-  
-  var id: Int
-  
-  var seq = PublishRelay<Int>()
-  
-  init(id: Int) {
-    self.id = id
-    super.init()
-    
-    Observable<Int>.timer(.seconds(1), period: .seconds(1), scheduler: SerialDispatchQueueScheduler(qos: .userInteractive))
-      .map { _ in Int.random(in: 0...9)}
-      .bind(to: seq)
-      .disposed(by: disposeBag)
+final class CellViewModel {
+  struct Input {
+    let model: ItemModel
   }
-  
-  deinit {
-    print("CellViewModel-\(id) has been released")
+
+  struct Output {
+    let id: Int
+    let seq: Driver<Int>
+  }
+
+  func transform(from input: Input) -> Output {
+    let id = input.model.identity
+    let seq = Observable<Int>.timer(
+      .seconds(1),
+      period: .seconds(1),
+      scheduler: SerialDispatchQueueScheduler(qos: .userInteractive)
+    )
+      .map { _ in Int.random(in: 0...9) }
+      .asDriver(onErrorJustReturn: -1)
+    return Output(id: id, seq: seq)
   }
 }

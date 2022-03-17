@@ -10,28 +10,19 @@ import RxDataSources
 import RxSwift
 import RxCocoa
 
-enum ItemModel: IdentifiableType, Equatable {
-  var identity: Int {
-    switch self {
-    case .timer(let cellViewModel):
-      return cellViewModel.id
-    }
-  }
-  
-  case timer(CellViewModel)
+struct ItemModel: IdentifiableType, Equatable {
+  let identity: Int
 }
 
 typealias SectionModel = AnimatableSectionModel<String, ItemModel>
 
-class ViewModel: NSObject {
+final class ViewModel {
   struct Input { }
   
   struct Output {
     var sections: Driver<[SectionModel]>
   }
   
-  let sections = BehaviorSubject<[SectionModel]>(value: [])
-
   func transform(from input: Input) -> Output {
 
     let initialState = State<Int>(items: [])
@@ -49,13 +40,7 @@ class ViewModel: NSObject {
       .map { $0.items }
 
     let sections = items
-      .observe(on: MainScheduler.asyncInstance)
-      .flatMapLatest { items -> Observable<[ItemModel]> in
-        let itemModels = items.map { item in
-          ItemModel.timer(CellViewModel(id: item))
-        }
-        return .just(itemModels)
-      }
+      .map { $0.map(ItemModel.init) }
       .map {
         [SectionModel(model: "title", items: $0)]
       }
